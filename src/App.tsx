@@ -513,39 +513,54 @@ export default function App() {
               </motion.button>
             ))}
           </div>
-
-          <AnimatePresence>
-            {feedback && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] ${feedback.isCorrect ? "bg-green-50" : "bg-red-50"}`}
-              >
-                <div className="flex gap-6">
-                  <div className={`p-4 border-2 border-black self-start ${feedback.isCorrect ? "bg-green-500" : "bg-red-500"}`}>
-                    {feedback.isCorrect ? <CheckCircle2 className="text-white w-8 h-8" /> : <XCircle className="text-white w-8 h-8" />}
-                  </div>
-                  <div className="flex-1 space-y-4">
-                    <div>
-                      <p className="text-2xl font-black uppercase mb-1">{feedback.isCorrect ? "¡Excelente!" : "¡Ups!"}</p>
-                      <p className="text-zinc-700 font-bold leading-snug">{feedback.message}</p>
-                    </div>
-                    <div className="p-4 bg-white/50 border-2 border-black border-dashed">
-                      <p className="text-sm font-medium text-zinc-600 italic">Sabías que... {currentQuestion?.description}</p>
-                    </div>
-                    <button 
-                      onClick={nextQuestion}
-                      className="brutal-button w-full flex items-center justify-center gap-2 py-4 text-xl"
-                    >
-                      {currentQuestionIndex < sessionQuestions.length - 1 ? "Siguiente Pregunta" : "Continuar"} <ArrowRight />
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </main>
+
+      {/* Feedback Popup Overlay */}
+      <AnimatePresence>
+        {feedback && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`max-w-xl w-full p-8 border-4 border-black border-dashed shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] ${feedback.isCorrect ? "bg-green-50" : "bg-red-50"}`}
+            >
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className={`p-4 border-4 border-black self-center md:self-start shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${feedback.isCorrect ? "bg-green-500" : "bg-red-500"}`}>
+                  {feedback.isCorrect ? <CheckCircle2 className="text-white w-12 h-12" /> : <XCircle className="text-white w-12 h-12" />}
+                </div>
+                <div className="flex-1 space-y-6 text-center md:text-left">
+                  <div>
+                    <h2 className="text-4xl font-black uppercase mb-1 tracking-tighter">
+                      {feedback.isCorrect ? "¡Excelente!" : "¡Sigue practicando!"}
+                    </h2>
+                    <p className="text-xl font-bold text-zinc-900 border-b-2 border-black/10 pb-4 inline-block">
+                      {feedback.message}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-zinc-900 text-zinc-200 border-2 border-black rotate-1">
+                    <p className="text-lg font-medium leading-relaxed">
+                      <span className="text-yellow-400 font-black">TIP MUSICAL:</span> {currentQuestion?.description}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={nextQuestion}
+                    className="brutal-button w-full flex items-center justify-center gap-2 py-4 text-2xl"
+                  >
+                    {currentQuestionIndex < sessionQuestions.length - 1 ? "Siguiente Pregunta" : "Ver Resultados"} <ArrowRight />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
