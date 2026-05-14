@@ -16,23 +16,39 @@ import {
   Mail,
 } from "lucide-react";
 import confetti from "canvas-confetti";
-import { INSTRUMENTS, Instrument, OrganologicalFamily, OrchestralFamily } from "./data/instruments";
+import { INSTRUMENTS, Instrument, OrganologicalFamily, OrchestralFamily, BasicFamily, InstrumentTier } from "./data/instruments";
 
 // --- Types ---
 type GameState = "START" | "LEVEL_TRANSITION" | "PLAYING" | "SUMMARY";
+type QuestionType = "NAME" | "BASIC_FAMILY" | "ORGANOLOGICAL" | "ORCHESTRAL" | "SOUND" | "MIXED";
 
 interface LevelConfig {
   id: number;
   title: string;
   description: string;
   count: number;
+  tier: InstrumentTier;
+  type: QuestionType;
 }
 
 const LEVELS: LevelConfig[] = [
-  { id: 1, title: "Nivel 1: Reconocimiento Visual", description: "Identifica el instrumento correcto según la imagen.", count: 3 },
-  { id: 2, title: "Nivel 2: Familias de Instrumentos", description: "Clasifica los instrumentos en sus familias correspondientes.", count: 3 },
-  { id: 3, title: "Nivel 3: Reconocimiento Sonoro", description: "Escucha el sonido e identifica qué instrumento es.", count: 3 },
-  { id: 4, title: "Nivel 4: Desafío Maestro", description: "Pon a prueba todo lo aprendido en este reto final.", count: 4 },
+  // FÁCIL: Common tools, Basic classification (WIND, STRINGS, PERCUSSION)
+  { id: 1, title: "1. Visual Inicial", description: "Identifica instrumentos comunes por su imagen.", count: 5, tier: InstrumentTier.EASY, type: "NAME" },
+  { id: 2, title: "2. Familias de Siempre", description: "¿Viento, Cuerda o Percusión?", count: 5, tier: InstrumentTier.EASY, type: "BASIC_FAMILY" },
+  { id: 3, title: "3. Sonidos Familiares", description: "Reconoce el instrumento por su sonido habitual.", count: 5, tier: InstrumentTier.EASY, type: "SOUND" },
+  { id: 4, title: "4. Repaso Inicial", description: "Mezcla de todo lo básico.", count: 5, tier: InstrumentTier.EASY, type: "MIXED" },
+  
+  // MEDIO: Artisanal tools, Organological classification
+  { id: 5, title: "5. Mundo Artesanal", description: "Instrumentos folclóricos y tradicionales.", count: 5, tier: InstrumentTier.MEDIUM, type: "NAME" },
+  { id: 6, title: "6. Sistema Organológico", description: "Cordófonos, Aerófonos, Idiófonos...", count: 5, tier: InstrumentTier.MEDIUM, type: "ORGANOLOGICAL" },
+  { id: 7, title: "7. Oído Tradicional", description: "Identifica sonidos de instrumentos artesanales.", count: 5, tier: InstrumentTier.MEDIUM, type: "SOUND" },
+  { id: 8, title: "8. Desafío Intermedio", description: "Consolida el conocimiento organológico.", count: 5, tier: InstrumentTier.MEDIUM, type: "MIXED" },
+
+  // AVANZADO: Orchestral tools, Sub-categories
+  { id: 9, title: "9. La Gran Orquesta", description: "Instrumentos específicos de la orquesta filarmónica.", count: 5, tier: InstrumentTier.ADVANCED, type: "NAME" },
+  { id: 10, title: "10. Precisiones Orquestales", description: "Viento metal, madera, cuerdas frotadas, etc.", count: 5, tier: InstrumentTier.ADVANCED, type: "ORCHESTRAL" },
+  { id: 11, title: "11. Maestría Auditiva", description: "Sonidos de orquesta complejos.", count: 5, tier: InstrumentTier.ADVANCED, type: "SOUND" },
+  { id: 12, title: "12. Maestro Supremo", description: "El examen final de clasificación musical.", count: 10, tier: InstrumentTier.ADVANCED, type: "MIXED" },
 ];
 
 export default function App() {
@@ -80,42 +96,64 @@ export default function App() {
     // Cleanup audio on unmount
     return () => stopSound();
   }, []);
+
   useEffect(() => {
     if (gameState === "PLAYING") {
-      const levelInstruments = [...INSTRUMENTS].sort(() => Math.random() - 0.5).slice(0, currentLevel.count);
+      const levelInstruments = [...INSTRUMENTS]
+        .filter(i => i.tier === currentLevel.tier)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, currentLevel.count);
+      
+      // If not enough instruments in tier, add from others
+      if (levelInstruments.length < currentLevel.count) {
+        const remaining = [...INSTRUMENTS]
+          .filter(i => !levelInstruments.includes(i))
+          .sort(() => Math.random() - 0.5)
+          .slice(0, currentLevel.count - levelInstruments.length);
+        levelInstruments.push(...remaining);
+      }
+
       setSessionQuestions(levelInstruments);
       setCurrentQuestionIndex(0);
-      generateOptions(levelInstruments[0], currentLevelIndex);
+      generateOptions(levelInstruments[0], currentLevel);
     }
   }, [currentLevelIndex, gameState]);
 
-  const generateOptions = (correctInstrument: Instrument, levelIdx: number) => {
-    let distractors: string[] = [];
+  const generateOptions = (correctInstrument: Instrument, level: LevelConfig) => {
+    let type = level.type;
+
+    if (type === "MIXED") {
+      const types: QuestionType[] = ["NAME", "SOUND"];
+      if (level.tier === InstrumentTier.EASY) types.push("BASIC_FAMILY");
+      if (level.tier === InstrumentTier.MEDIUM) types.push("ORGANOLOGICAL");
+      if (level.tier === InstrumentTier.ADVANCED) types.push("ORCHESTRAL");
+      type = types[Math.floor(Math.random() * types.length)];
+    }
     
-    // Level 1: Recognition by Image (Name)
-    // Level 3: Recognition by Sound (Name)
-    // Level 4: Mixed (might be name or family)
-    if (levelIdx === 0 || levelIdx === 2 || (levelIdx === 3 && Math.random() > 0.5)) {
-      distractors = INSTRUMENTS
+    if (type === "NAME" || type === "SOUND") {
+      const distractors = INSTRUMENTS
         .filter(i => i.id !== correctInstrument.id)
         .map(i => i.name);
       
       const randomDistractors = [...distractors].sort(() => Math.random() - 0.5).slice(0, 3);
       setOptions([...randomDistractors, correctInstrument.name].sort(() => Math.random() - 0.5));
-    } else {
-      // Level 2 & Part of Level 4: Classification
-      const isOrganological = Math.random() > 0.5;
-      const possibleFamilies = isOrganological 
-        ? Object.values(OrganologicalFamily) 
-        : Object.values(OrchestralFamily).filter(f => f !== OrchestralFamily.OTHER);
-      
-      const correctValue = isOrganological 
-        ? correctInstrument.organologicalFamily 
-        : correctInstrument.orchestralFamily;
-
+    } else if (type === "BASIC_FAMILY") {
+      const correctValue = correctInstrument.basicFamily;
+      const possibleFamilies = Object.values(BasicFamily);
+      const filteredDistractors = possibleFamilies.filter(d => d !== correctValue);
+      setOptions([...filteredDistractors, correctValue].sort(() => Math.random() - 0.5));
+    } else if (type === "ORGANOLOGICAL") {
+      const correctValue = correctInstrument.organologicalFamily;
+      const possibleFamilies = Object.values(OrganologicalFamily);
       const filteredDistractors = possibleFamilies.filter(d => d !== correctValue);
       const randomOptions = [...filteredDistractors].sort(() => Math.random() - 0.5).slice(0, 3);
-      setOptions([...randomOptions, (correctValue as string)].sort(() => Math.random() - 0.5));
+      setOptions([...randomOptions, correctValue].sort(() => Math.random() - 0.5));
+    } else if (type === "ORCHESTRAL") {
+      const correctValue = correctInstrument.orchestralFamily;
+      const possibleFamilies = Object.values(OrchestralFamily);
+      const filteredDistractors = possibleFamilies.filter(d => d !== correctValue);
+      const randomOptions = [...filteredDistractors].sort(() => Math.random() - 0.5).slice(0, 3);
+      setOptions([...randomOptions, correctValue].sort(() => Math.random() - 0.5));
     }
   };
 
@@ -125,7 +163,8 @@ export default function App() {
     const correctInstrument = sessionQuestions[currentQuestionIndex];
     const isCorrect = (answer === correctInstrument.name) || 
                      (answer === correctInstrument.organologicalFamily) || 
-                     (answer === correctInstrument.orchestralFamily);
+                     (answer === correctInstrument.orchestralFamily) ||
+                     (answer === correctInstrument.basicFamily);
 
     let explanation = "";
 
@@ -137,7 +176,7 @@ export default function App() {
         : `¡Bien hecho! El ${correctInstrument.name} pertenece a la familia de los ${answer}.`;
       setFeedback({ isCorrect: true, message: explanation });
     } else {
-      explanation = `Lo siento, el instrumento es un ${correctInstrument.name}, que es un ${correctInstrument.organologicalFamily} (${correctInstrument.orchestralFamily.toLowerCase()}).`;
+      explanation = `Lo siento, el instrumento es un ${correctInstrument.name}. Es un ${correctInstrument.basicFamily.toLowerCase()}, de tipo ${correctInstrument.organologicalFamily.toLowerCase()} (${correctInstrument.orchestralFamily.toLowerCase()}).`;
       setFeedback({ isCorrect: false, message: explanation });
     }
     
@@ -442,7 +481,7 @@ export default function App() {
               className="bg-white border-4 border-black p-4 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]"
             >
               <div className="aspect-video bg-zinc-100 mb-6 border-2 border-black overflow-hidden relative group">
-                {(currentLevelIndex === 2 || (currentLevelIndex === 3 && currentQuestion?.sound)) ? (
+                {(currentLevel.type === "SOUND" || (currentLevel.type === "MIXED" && !options.includes(currentQuestion?.name))) ? (
                   <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-indigo-50">
                     <button 
                       onClick={() => playInstrumentSound(currentQuestion.sound)}
@@ -477,12 +516,12 @@ export default function App() {
               </div>
               <div className="space-y-2">
                 <span className="inline-block bg-black text-white px-3 py-1 text-xs font-black uppercase tracking-widest">
-                  Pregunta {currentQuestionIndex + 1}
+                  Pregunta {currentQuestionIndex + 1} de {currentLevel.count}
                 </span>
                 <h3 className="text-3xl font-black leading-tight">
-                  {currentLevelIndex === 1 || (currentLevelIndex === 3 && Math.random() > 0.5 && !options.includes(currentQuestion?.name)) 
-                    ? "¿A qué familia pertenece?" 
-                    : "¿Cuál es este instrumento?"}
+                  {options.includes(currentQuestion?.name) 
+                    ? "¿Cuál es este instrumento?" 
+                    : "¿A qué familia pertenece?"}
                 </h3>
               </div>
             </motion.div>
@@ -500,14 +539,14 @@ export default function App() {
                 disabled={!!feedback}
                 className={`w-full text-left p-6 font-black text-xl border-4 border-black transition-all flex items-center justify-between
                   ${feedback ? (
-                    (option === currentQuestion?.name || option === currentQuestion?.organologicalFamily || option === currentQuestion?.orchestralFamily)
+                    (option === currentQuestion?.name || option === currentQuestion?.organologicalFamily || option === currentQuestion?.orchestralFamily || option === currentQuestion?.basicFamily)
                     ? "bg-green-500 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
-                    : (feedback && !feedback.isCorrect && option === feedback.message.split(' ').pop()) ? "bg-red-500 text-white" : "bg-white opacity-40 shadow-none border-zinc-300"
+                    : (feedback && !feedback.isCorrect && (option === currentQuestion?.name || option === currentQuestion?.basicFamily || option === currentQuestion?.organologicalFamily || option === currentQuestion?.orchestralFamily)) ? "bg-white opacity-40" : "bg-red-500 text-white"
                   ) : "bg-white hover:bg-yellow-300 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"}
                 `}
               >
                 {option}
-                {feedback && (option === currentQuestion?.name || option === currentQuestion?.organologicalFamily || option === currentQuestion?.orchestralFamily) && (
+                {feedback && (option === currentQuestion?.name || option === currentQuestion?.organologicalFamily || option === currentQuestion?.orchestralFamily || option === currentQuestion?.basicFamily) && (
                   <CheckCircle2 className="w-8 h-8" />
                 )}
               </motion.button>
