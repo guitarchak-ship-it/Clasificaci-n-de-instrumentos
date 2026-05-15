@@ -235,28 +235,19 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl w-full brutal-card text-center space-y-8"
         >
-          <div className="inline-flex p-4 bg-indigo-200 rounded-full mb-4">
-            <Music className="w-12 h-12 text-indigo-700" />
+          <div className="inline-flex mb-4">
+            <img src="/icono.png" alt="Icono" className="w-24 h-24 object-contain" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter">Armonía en Clasificación</h1>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter">LOS INSTRUMENTOS MUSICALES</h1>
           <p className="text-xl text-zinc-600 font-medium">
-            Aprende a clasificar los instrumentos musicales de forma divertida y desafiante. 
-            ¡Supera los 4 niveles para ganar!
+            Aprende a identificar los instrumentos musicales y su clasificación con este Test Interactivo
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-            <li className="list-none p-4 bg-white border-2 border-black flex gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <ImageIcon className="text-blue-500 shrink-0" />
-              <div>
-                <p className="font-bold">Vista y Oído</p>
-                <p className="text-sm text-zinc-500">Reconoce por imagen y sonido.</p>
-              </div>
+            <li className="list-none p-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-40">
+              <img src="/vista_y_oido.png" alt="Vista y Oído" className="w-full h-full object-cover" />
             </li>
-            <li className="list-none p-4 bg-white border-2 border-black flex gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <Layers className="text-green-500 shrink-0" />
-              <div>
-                <p className="font-bold">Ciencia Musical</p>
-                <p className="text-sm text-zinc-500">Familias orquestales y organológicas.</p>
-              </div>
+            <li className="list-none p-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-40">
+              <img src="/ciencia_musical.png" alt="Ciencia Musical" className="w-full h-full object-cover" />
             </li>
           </div>
           <div className="space-y-4 text-left">
@@ -363,14 +354,14 @@ export default function App() {
       // Footer
       doc.setFontSize(10);
       doc.setTextColor(150, 150, 150);
-      doc.text("Generado por Armonía en Clasificación - Juego Educativo Musical", 105, 280, { align: "center" });
+      doc.text("Generado por LOS INSTRUMENTOS MUSICALES - Juego Educativo Musical", 105, 280, { align: "center" });
 
       doc.save(`Reporte_Musical_${studentName.replace(/\s+/g, '_')}.pdf`);
     };
 
     const shareByEmail = () => {
       const subject = `Reporte de Logro Musical - ${studentName}`;
-      const body = `Hola,\n\nSoy ${studentName} y he completado el juego Armonía en Clasificación.\n\n` +
+      const body = `Hola,\n\nSoy ${studentName} y he completado el juego LOS INSTRUMENTOS MUSICALES.\n\n` +
         `Mis resultados:\n` +
         `- Puntaje: ${score}\n` +
         `- Logro: ${achievementPercentage}%\n` +
