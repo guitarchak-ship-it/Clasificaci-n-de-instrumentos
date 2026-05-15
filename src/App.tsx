@@ -62,6 +62,7 @@ export default function App() {
   const [feedback, setFeedback] = useState<{ isCorrect: boolean; message: string } | null>(null);
   const [sessionQuestions, setSessionQuestions] = useState<Instrument[]>([]);
   const [options, setOptions] = useState<string[]>([]);
+  const [currentQuestionType, setCurrentQuestionType] = useState<QuestionType>("NAME");
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -115,11 +116,11 @@ export default function App() {
 
       setSessionQuestions(levelInstruments);
       setCurrentQuestionIndex(0);
-      generateOptions(levelInstruments[0], currentLevel);
+      determineAndGenerateOptions(levelInstruments[0], currentLevel);
     }
   }, [currentLevelIndex, gameState]);
 
-  const generateOptions = (correctInstrument: Instrument, level: LevelConfig) => {
+  const determineAndGenerateOptions = (correctInstrument: Instrument, level: LevelConfig) => {
     let type = level.type;
 
     if (type === "MIXED") {
@@ -129,6 +130,8 @@ export default function App() {
       if (level.tier === InstrumentTier.ADVANCED) types.push("ORCHESTRAL");
       type = types[Math.floor(Math.random() * types.length)];
     }
+    
+    setCurrentQuestionType(type);
     
     if (type === "NAME" || type === "SOUND") {
       const distractors = INSTRUMENTS
@@ -161,10 +164,11 @@ export default function App() {
     if (feedback) return;
 
     const correctInstrument = sessionQuestions[currentQuestionIndex];
-    const isCorrect = (answer === correctInstrument.name) || 
-                     (answer === correctInstrument.organologicalFamily) || 
-                     (answer === correctInstrument.orchestralFamily) ||
-                     (answer === correctInstrument.basicFamily);
+    const isCorrect = (currentQuestionType === "NAME" || currentQuestionType === "SOUND") 
+      ? answer === correctInstrument.name
+      : (answer === correctInstrument.organologicalFamily) || 
+        (answer === correctInstrument.orchestralFamily) ||
+        (answer === correctInstrument.basicFamily);
 
     let explanation = "";
 
@@ -190,7 +194,7 @@ export default function App() {
     if (currentQuestionIndex < sessionQuestions.length - 1) {
       const nextIdx = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIdx);
-      generateOptions(sessionQuestions[nextIdx], currentLevelIndex);
+      determineAndGenerateOptions(sessionQuestions[nextIdx], currentLevel);
     } else {
       if (currentLevelIndex < LEVELS.length - 1) {
         setGameState("LEVEL_TRANSITION");
@@ -472,7 +476,7 @@ export default function App() {
               className="bg-white border-4 border-black p-4 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]"
             >
               <div className="aspect-video bg-zinc-100 mb-6 border-2 border-black overflow-hidden relative group">
-                {(currentLevel.type === "SOUND" || (currentLevel.type === "MIXED" && !options.includes(currentQuestion?.name))) ? (
+                {currentQuestionType === "SOUND" ? (
                   <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-indigo-50">
                     <button 
                       onClick={() => playInstrumentSound(currentQuestion.sound)}
@@ -510,7 +514,7 @@ export default function App() {
                   Pregunta {currentQuestionIndex + 1} de {currentLevel.count}
                 </span>
                 <h3 className="text-3xl font-black leading-tight">
-                  {options.includes(currentQuestion?.name) 
+                  {(currentQuestionType === "NAME" || currentQuestionType === "SOUND") 
                     ? "¿Cuál es este instrumento?" 
                     : "¿A qué familia pertenece?"}
                 </h3>
@@ -530,14 +534,27 @@ export default function App() {
                 disabled={!!feedback}
                 className={`w-full text-left p-6 font-black text-xl border-4 border-black transition-all flex items-center justify-between
                   ${feedback ? (
-                    (option === currentQuestion?.name || option === currentQuestion?.organologicalFamily || option === currentQuestion?.orchestralFamily || option === currentQuestion?.basicFamily)
+                    ((currentQuestionType === "NAME" || currentQuestionType === "SOUND") && option === currentQuestion?.name) ||
+                    (currentQuestionType === "BASIC_FAMILY" && option === currentQuestion?.basicFamily) ||
+                    (currentQuestionType === "ORGANOLOGICAL" && option === currentQuestion?.organologicalFamily) ||
+                    (currentQuestionType === "ORCHESTRAL" && option === currentQuestion?.orchestralFamily)
                     ? "bg-green-500 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
-                    : (feedback && !feedback.isCorrect && (option === currentQuestion?.name || option === currentQuestion?.basicFamily || option === currentQuestion?.organologicalFamily || option === currentQuestion?.orchestralFamily)) ? "bg-white opacity-40" : "bg-red-500 text-white"
+                    : (feedback && !feedback.isCorrect && (
+                        (currentQuestionType === "NAME" || currentQuestionType === "SOUND") ? option === currentQuestion?.name :
+                        (currentQuestionType === "BASIC_FAMILY") ? option === currentQuestion?.basicFamily :
+                        (currentQuestionType === "ORGANOLOGICAL") ? option === currentQuestion?.organologicalFamily :
+                        (currentQuestionType === "ORCHESTRAL") ? option === currentQuestion?.orchestralFamily : false
+                      )) ? "bg-white opacity-40 shadow-none" : "bg-red-500 text-white"
                   ) : "bg-white hover:bg-yellow-300 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"}
                 `}
               >
                 {option}
-                {feedback && (option === currentQuestion?.name || option === currentQuestion?.organologicalFamily || option === currentQuestion?.orchestralFamily || option === currentQuestion?.basicFamily) && (
+                {feedback && (
+                  ((currentQuestionType === "NAME" || currentQuestionType === "SOUND") && option === currentQuestion?.name) ||
+                  (currentQuestionType === "BASIC_FAMILY" && option === currentQuestion?.basicFamily) ||
+                  (currentQuestionType === "ORGANOLOGICAL" && option === currentQuestion?.organologicalFamily) ||
+                  (currentQuestionType === "ORCHESTRAL" && option === currentQuestion?.orchestralFamily)
+                ) && (
                   <CheckCircle2 className="w-8 h-8" />
                 )}
               </motion.button>
