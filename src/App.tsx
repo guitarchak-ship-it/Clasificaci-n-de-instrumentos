@@ -179,13 +179,21 @@ export default function App() {
         ? `¡Correcto! Es un ${correctInstrument.name}.`
         : `¡Bien hecho! El ${correctInstrument.name} pertenece a la familia de los ${answer}.`;
       setFeedback({ isCorrect: true, message: explanation });
-      // Play correct sound
-      new Audio("/sounds/correct.mp3").play().catch(() => {});
+      
+      // Play correct sound with diagnostic logging
+      const sound = new Audio("/sounds/correct.wav");
+      sound.play().catch(err => {
+        console.warn("No se pudo reproducir correct.wav. Asegúrate de que el archivo no esté vacío y sea un WAV válido.", err);
+      });
     } else {
       explanation = `Lo siento, el instrumento es un ${correctInstrument.name}. Es un ${correctInstrument.basicFamily.toLowerCase()}, de tipo ${correctInstrument.organologicalFamily.toLowerCase()} (${correctInstrument.orchestralFamily.toLowerCase()}).`;
       setFeedback({ isCorrect: false, message: explanation });
-      // Play incorrect sound
-      new Audio("/sounds/incorrect.mp3").play().catch(() => {});
+      
+      // Play incorrect sound with diagnostic logging
+      const sound = new Audio("/sounds/incorrect.wav");
+      sound.play().catch(err => {
+        console.warn("No se pudo reproducir incorrect.wav. Asegúrate de que el archivo no esté vacío y sea un WAV válido.", err);
+      });
     }
     
     setTotalAttempted(t => t + 1);
@@ -202,6 +210,13 @@ export default function App() {
     } else {
       if (currentLevelIndex < LEVELS.length - 1) {
         setGameState("LEVEL_TRANSITION");
+        
+        // Play stage completed sound
+        const stageSound = new Audio("/sounds/etapa_superada.wav");
+        stageSound.play().catch(err => {
+          console.warn("No se pudo reproducir etapa_superada.wav", err);
+        });
+
         confetti({
           particleCount: 100,
           spread: 70,
@@ -209,6 +224,13 @@ export default function App() {
         });
       } else {
         setGameState("SUMMARY");
+        
+        // Play fanfarre sound
+        const fanfarre = new Audio("/sounds/fanfarre.mp3");
+        fanfarre.play().catch(err => {
+          console.warn("No se pudo reproducir fanfarre.mp3", err);
+        });
+
         confetti({
           particleCount: 200,
           spread: 100,
@@ -309,12 +331,33 @@ export default function App() {
   if (gameState === "SUMMARY") {
     const achievementPercentage = totalAttempted > 0 ? Math.round((correctAnswers / totalAttempted) * 100) : 0;
     
+    // Calcular nota con escala del 60%
+    const calculateGrade = (pts: number, maxPts: number) => {
+      if (maxPts === 0) return "1.0";
+      const exigencia = 0.6;
+      const corte = maxPts * exigencia;
+      let nota: number;
+      if (pts < corte) {
+        nota = (3 * (pts / corte)) + 1;
+      } else {
+        nota = (3 * ((pts - corte) / (maxPts - corte))) + 4;
+      }
+      return nota.toFixed(1);
+    };
+
+    const finalGrade = calculateGrade(correctAnswers, totalAttempted);
+    
     let percentageColor = "text-red-600";
-    if (achievementPercentage === 100) percentageColor = "text-green-600";
-    else if (achievementPercentage >= 60) percentageColor = "text-yellow-600";
+    let gradeColor = "text-red-600";
+    if (achievementPercentage === 100) {
+      percentageColor = "text-green-600";
+      gradeColor = "text-green-600";
+    } else if (achievementPercentage >= 60) {
+      percentageColor = "text-green-600";
+      gradeColor = "text-green-700";
+    }
 
     const downloadPDFReport = () => {
-      // ... (no changes needed to PDF logic)
       const doc = new jsPDF();
       const date = new Date().toLocaleDateString();
       doc.setFillColor(79, 70, 229); 
@@ -323,29 +366,52 @@ export default function App() {
       doc.setFontSize(24);
       doc.setFont("helvetica", "bold");
       doc.text("REPORTE DE LOGRO", 105, 25, { align: "center" });
+      
       doc.setTextColor(0, 0, 0);
-      doc.setFontSize(14);
+      doc.setFontSize(12);
       doc.text(`Fecha: ${date}`, 20, 50);
-      doc.setFontSize(18);
-      doc.text("Estudiante:", 20, 65);
-      doc.setFontSize(26);
-      doc.text(studentName, 20, 80);
-      doc.setDrawColor(0, 0, 0);
-      doc.setLineWidth(1);
-      doc.line(20, 90, 190, 90);
       doc.setFontSize(16);
-      doc.text("Resumen de Actividad:", 20, 105);
-      doc.setFontSize(14);
-      doc.text(`- Puntaje Total: ${score} puntos`, 30, 120);
-      doc.text(`- Aciertos: ${correctAnswers} de ${totalAttempted}`, 30, 130);
-      doc.text(`- Porcentaje de Logro: ${achievementPercentage}%`, 30, 140);
-      let statusText = "Requiere Refuerzo";
-      if (achievementPercentage === 100) statusText = "¡Excelente - Maestro Musical!";
-      else if (achievementPercentage >= 60) statusText = "Buen Trabajo - Aprobado";
-      doc.setFontSize(18);
-      doc.text("Estado:", 20, 160);
+      doc.text("Estudiante:", 20, 60);
       doc.setFontSize(22);
-      doc.text(statusText, 20, 175);
+      doc.text(studentName, 20, 75);
+      
+      // Calificación Central
+      doc.setFillColor(245, 245, 245);
+      doc.rect(20, 90, 170, 60, 'F');
+      doc.setDrawColor(0, 0, 0);
+      doc.rect(20, 90, 170, 60, 'S');
+      
+      doc.setFontSize(14);
+      doc.text("CALIFICACIÓN FINAL", 105, 105, { align: "center" });
+      doc.setFontSize(60);
+      doc.setTextColor(Number(finalGrade) >= 4 ? 0 : 200, 0, 0);
+      doc.text(finalGrade, 105, 135, { align: "center" });
+      
+      // Detalles
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(12);
+      doc.text(`Exigencia: 60%`, 105, 145, { align: "center" });
+
+      doc.setLineWidth(0.5);
+      doc.line(20, 160, 190, 160);
+      
+      doc.setFontSize(14);
+      doc.text("Resumen de Actividad:", 20, 175);
+      doc.setFontSize(12);
+      doc.text(`- Puntaje Total: ${score} puntos`, 30, 185);
+      doc.text(`- Aciertos: ${correctAnswers} de ${totalAttempted}`, 30, 195);
+      doc.text(`- Porcentaje de Logro: ${achievementPercentage}%`, 30, 205);
+
+      let statusText = "Reprobado - Requiere Refuerzo";
+      if (achievementPercentage === 100) statusText = "¡Excelente - Maestro Musical!";
+      else if (achievementPercentage >= 60) statusText = "Aprobado - Buen Trabajo";
+      
+      doc.setFontSize(16);
+      doc.text("Estado:", 20, 225);
+      doc.setFontSize(18);
+      doc.setTextColor(Number(finalGrade) >= 4 ? 0 : 200, 0, 0);
+      doc.text(statusText, 20, 235);
+
       doc.setFontSize(10);
       doc.setTextColor(150, 150, 150);
       doc.text("Generado por LOS INSTRUMENTOS MUSICALES - Juego Educativo Musical", 105, 280, { align: "center" });
@@ -356,6 +422,7 @@ export default function App() {
       const subject = `Reporte de Logro Musical - ${studentName}`;
       const body = `Hola,\n\nSoy ${studentName} y he completado el juego LOS INSTRUMENTOS MUSICALES.\n\n` +
         `Mis resultados:\n` +
+        `- Calificación: ${finalGrade}\n` +
         `- Puntaje: ${score}\n` +
         `- Logro: ${achievementPercentage}%\n` +
         `- Aciertos: ${correctAnswers} de ${totalAttempted}\n\n` +
@@ -378,27 +445,33 @@ export default function App() {
           className="max-w-lg w-full brutal-card text-center space-y-4 p-6"
         >
           <Trophy className="w-16 h-16 text-yellow-500 mx-auto" />
-          <div>
-            <h2 className="text-3xl font-black mb-1 uppercase tracking-tighter">{studentName}</h2>
-            <h2 className="text-xl font-black mb-1 text-zinc-400">¡RETO COMPLETADO!</h2>
-            <p className="text-sm text-zinc-600 font-medium">Has dominado la clasificación de instrumentos.</p>
+          <div className="space-y-1">
+            <h2 className="text-3xl font-black uppercase tracking-tighter">{studentName}</h2>
+            <p className="text-sm text-zinc-600 font-medium">Test de Instrumentos Musicales</p>
           </div>
-          <div className="flex justify-center gap-6 py-4 border-y-2 border-black border-dashed">
+
+          <div className="py-6 bg-indigo-50 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-center">
+            <p className="text-xs font-black uppercase tracking-widest text-indigo-400 mb-1">Calificación Final</p>
+            <p className={`text-7xl font-black ${gradeColor} tracking-tighter`}>{finalGrade}</p>
+            <p className="text-[10px] font-bold text-zinc-400 mt-2">EXIGENCIA 60%</p>
+          </div>
+
+          <div className="flex justify-center gap-8 py-2">
             <div>
-              <p className="text-2xl font-black text-indigo-600">{score}</p>
+              <p className="text-xl font-black text-indigo-600">{score}</p>
               <p className="text-[10px] font-black uppercase text-zinc-400">Puntaje</p>
             </div>
             <div>
-              <p className={`text-2xl font-black ${percentageColor}`}>{achievementPercentage}%</p>
+              <p className={`text-xl font-black ${percentageColor}`}>{achievementPercentage}%</p>
               <p className="text-[10px] font-black uppercase text-zinc-400">Logro</p>
             </div>
             <div>
-              <p className="text-2xl font-black text-zinc-800">{correctAnswers}/{totalAttempted}</p>
+              <p className="text-xl font-black text-zinc-800">{correctAnswers}/{totalAttempted}</p>
               <p className="text-[10px] font-black uppercase text-zinc-400">Aciertos</p>
             </div>
           </div>
           
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 pt-2">
             <button 
               onClick={downloadPDFReport}
               className="brutal-button bg-green-600 w-full flex items-center justify-center gap-2 py-3 text-base"
@@ -575,15 +648,19 @@ export default function App() {
                     <h2 className="text-4xl font-black uppercase mb-1 tracking-tighter">
                       {feedback.isCorrect ? "¡Excelente!" : "¡Sigue practicando!"}
                     </h2>
-                    <p className="text-xl font-bold text-zinc-900 border-b-2 border-black/10 pb-4 inline-block">
-                      {feedback.message}
-                    </p>
+                    {!feedback.isCorrect && (
+                      <p className="text-xl font-bold text-zinc-900 border-b-2 border-black/10 pb-4 inline-block">
+                        {feedback.message}
+                      </p>
+                    )}
                   </div>
-                  <div className="p-4 bg-zinc-900 text-zinc-200 border-2 border-black rotate-1">
-                    <p className="text-lg font-medium leading-relaxed">
-                      <span className="text-yellow-400 font-black">TIP MUSICAL:</span> {currentQuestion?.description}
-                    </p>
-                  </div>
+                  {feedback.isCorrect && (
+                    <div className="p-4 bg-zinc-900 text-zinc-200 border-2 border-black rotate-1">
+                      <p className="text-lg font-medium leading-relaxed">
+                        <span className="text-yellow-400 font-black">TIP MUSICAL:</span> {currentQuestion?.description}
+                      </p>
+                    </div>
+                  )}
                   <button 
                     onClick={nextQuestion}
                     className="brutal-button w-full flex items-center justify-center gap-2 py-4 text-2xl"
