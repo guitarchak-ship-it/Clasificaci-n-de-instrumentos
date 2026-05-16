@@ -179,9 +179,13 @@ export default function App() {
         ? `¡Correcto! Es un ${correctInstrument.name}.`
         : `¡Bien hecho! El ${correctInstrument.name} pertenece a la familia de los ${answer}.`;
       setFeedback({ isCorrect: true, message: explanation });
+      // Play correct sound
+      new Audio("/sounds/correct.mp3").play().catch(() => {});
     } else {
       explanation = `Lo siento, el instrumento es un ${correctInstrument.name}. Es un ${correctInstrument.basicFamily.toLowerCase()}, de tipo ${correctInstrument.organologicalFamily.toLowerCase()} (${correctInstrument.orchestralFamily.toLowerCase()}).`;
       setFeedback({ isCorrect: false, message: explanation });
+      // Play incorrect sound
+      new Audio("/sounds/incorrect.mp3").play().catch(() => {});
     }
     
     setTotalAttempted(t => t + 1);
@@ -233,41 +237,41 @@ export default function App() {
 
   if (gameState === "START") {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-indigo-50">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-indigo-50">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl w-full brutal-card text-center space-y-8"
+          className="max-w-xl w-full brutal-card text-center space-y-4"
         >
-          <div className="inline-flex mb-4">
-            <img src="/icono.png" alt="Icono" className="w-24 h-24 object-contain" />
+          <div className="inline-flex mb-2">
+            <img src="/icono.png" alt="Icono" className="w-16 h-16 object-contain" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter">LOS INSTRUMENTOS MUSICALES</h1>
-          <p className="text-xl text-zinc-600 font-medium">
-            Aprende a identificar los instrumentos musicales y su clasificación con este Test Interactivo
+          <h1 className="text-3xl md:text-5xl font-black tracking-tighter">LOS INSTRUMENTOS MUSICALES</h1>
+          <p className="text-lg text-zinc-600 font-medium">
+            Test Interactivo de Clasificación Musical
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-            <li className="list-none p-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-40">
+            <li className="list-none p-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-28">
               <img src="/vista_y_oido.png" alt="Vista y Oído" className="w-full h-full object-cover" />
             </li>
-            <li className="list-none p-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-40">
+            <li className="list-none p-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-28">
               <img src="/ciencia_musical.png" alt="Ciencia Musical" className="w-full h-full object-cover" />
             </li>
           </div>
-          <div className="space-y-4 text-left">
-            <label className="block text-sm font-black uppercase tracking-widest text-zinc-500">Tu Nombre:</label>
+          <div className="space-y-2 text-left">
+            <label className="block text-xs font-black uppercase tracking-widest text-zinc-500">Tu Nombre:</label>
             <input 
               type="text" 
               value={studentName}
               onChange={(e) => setStudentName(e.target.value)}
               placeholder="Ingresa tu nombre aquí..."
-              className="w-full p-4 text-xl font-bold border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:bg-yellow-50"
+              className="w-full p-3 text-lg font-bold border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:bg-yellow-50"
             />
           </div>
           <button 
             onClick={() => studentName.trim() && setGameState("PLAYING")}
             disabled={!studentName.trim()}
-            className="brutal-button w-full text-xl py-6 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="brutal-button w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ¡Comenzar Juego!
           </button>
@@ -278,22 +282,22 @@ export default function App() {
 
   if (gameState === "LEVEL_TRANSITION") {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-indigo-600">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-indigo-600">
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="max-w-lg w-full brutal-card text-center space-y-6"
+          className="max-w-md w-full brutal-card text-center space-y-4"
         >
-          <Trophy className="w-20 h-20 text-yellow-400 mx-auto" />
-          <h2 className="text-3xl font-black">¡NIVEL COMPLETADO!</h2>
-          <p className="text-lg font-medium">Has superado el {currentLevel.title}.</p>
-          <div className="py-4 px-6 bg-zinc-100 border-2 border-black">
-            <p className="text-zinc-500 uppercase text-xs font-black tracking-widest mb-1">Siguiente:</p>
-            <p className="text-xl font-bold text-indigo-700">{LEVELS[currentLevelIndex + 1].title}</p>
+          <Trophy className="w-16 h-16 text-yellow-400 mx-auto" />
+          <h2 className="text-2xl font-black">¡NIVEL COMPLETADO!</h2>
+          <p className="text-base font-medium">Has superado el {currentLevel.title}.</p>
+          <div className="py-3 px-4 bg-zinc-100 border-2 border-black">
+            <p className="text-zinc-500 uppercase text-[10px] font-black tracking-widest mb-1">Siguiente:</p>
+            <p className="text-lg font-bold text-indigo-700">{LEVELS[currentLevelIndex + 1].title}</p>
           </div>
           <button 
             onClick={startNextLevel}
-            className="brutal-button w-full flex items-center justify-center gap-2"
+            className="brutal-button w-full flex items-center justify-center gap-2 py-3"
           >
             Siguiente Nivel <ArrowRight />
           </button>
@@ -310,56 +314,41 @@ export default function App() {
     else if (achievementPercentage >= 60) percentageColor = "text-yellow-600";
 
     const downloadPDFReport = () => {
+      // ... (no changes needed to PDF logic)
       const doc = new jsPDF();
       const date = new Date().toLocaleDateString();
-
-      // Header
-      doc.setFillColor(79, 70, 229); // indigo-600
+      doc.setFillColor(79, 70, 229); 
       doc.rect(0, 0, 210, 40, 'F');
-      
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(24);
       doc.setFont("helvetica", "bold");
       doc.text("REPORTE DE LOGRO", 105, 25, { align: "center" });
-
-      // Student Info
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(14);
       doc.text(`Fecha: ${date}`, 20, 50);
-      
       doc.setFontSize(18);
       doc.text("Estudiante:", 20, 65);
       doc.setFontSize(26);
       doc.text(studentName, 20, 80);
-
-      // Results Section
       doc.setDrawColor(0, 0, 0);
       doc.setLineWidth(1);
       doc.line(20, 90, 190, 90);
-
       doc.setFontSize(16);
       doc.text("Resumen de Actividad:", 20, 105);
-      
       doc.setFontSize(14);
       doc.text(`- Puntaje Total: ${score} puntos`, 30, 120);
       doc.text(`- Aciertos: ${correctAnswers} de ${totalAttempted}`, 30, 130);
       doc.text(`- Porcentaje de Logro: ${achievementPercentage}%`, 30, 140);
-
-      // Status
       let statusText = "Requiere Refuerzo";
       if (achievementPercentage === 100) statusText = "¡Excelente - Maestro Musical!";
       else if (achievementPercentage >= 60) statusText = "Buen Trabajo - Aprobado";
-      
       doc.setFontSize(18);
       doc.text("Estado:", 20, 160);
       doc.setFontSize(22);
       doc.text(statusText, 20, 175);
-
-      // Footer
       doc.setFontSize(10);
       doc.setTextColor(150, 150, 150);
       doc.text("Generado por LOS INSTRUMENTOS MUSICALES - Juego Educativo Musical", 105, 280, { align: "center" });
-
       doc.save(`Reporte_Musical_${studentName.replace(/\s+/g, '_')}.pdf`);
     };
 
@@ -373,7 +362,6 @@ export default function App() {
         `¡Sigue aprendiendo sobre instrumentos musicales!`;
       
       const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      
       const link = document.createElement('a');
       link.href = mailtoUrl;
       link.style.display = 'none';
@@ -383,51 +371,51 @@ export default function App() {
     };
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-zinc-900">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-900">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="max-w-xl w-full brutal-card text-center space-y-8"
+          className="max-w-lg w-full brutal-card text-center space-y-4 p-6"
         >
-          <Trophy className="w-24 h-24 text-yellow-500 mx-auto" />
+          <Trophy className="w-16 h-16 text-yellow-500 mx-auto" />
           <div>
-            <h2 className="text-4xl font-black mb-1 uppercase tracking-tighter">{studentName}</h2>
-            <h2 className="text-2xl font-black mb-2 text-zinc-400">¡RETO COMPLETADO!</h2>
-            <p className="text-zinc-600 font-medium">Has dominado la clasificación de instrumentos.</p>
+            <h2 className="text-3xl font-black mb-1 uppercase tracking-tighter">{studentName}</h2>
+            <h2 className="text-xl font-black mb-1 text-zinc-400">¡RETO COMPLETADO!</h2>
+            <p className="text-sm text-zinc-600 font-medium">Has dominado la clasificación de instrumentos.</p>
           </div>
-          <div className="flex justify-center gap-12 py-8 border-y-2 border-black border-dashed">
+          <div className="flex justify-center gap-6 py-4 border-y-2 border-black border-dashed">
             <div>
-              <p className="text-4xl font-black text-indigo-600">{score}</p>
-              <p className="text-xs font-black uppercase text-zinc-400">Puntaje</p>
+              <p className="text-2xl font-black text-indigo-600">{score}</p>
+              <p className="text-[10px] font-black uppercase text-zinc-400">Puntaje</p>
             </div>
             <div>
-              <p className={`text-4xl font-black ${percentageColor}`}>{achievementPercentage}%</p>
-              <p className="text-xs font-black uppercase text-zinc-400">Logro</p>
+              <p className={`text-2xl font-black ${percentageColor}`}>{achievementPercentage}%</p>
+              <p className="text-[10px] font-black uppercase text-zinc-400">Logro</p>
             </div>
             <div>
-              <p className="text-4xl font-black text-zinc-800">{correctAnswers}/{totalAttempted}</p>
-              <p className="text-xs font-black uppercase text-zinc-400">Aciertos</p>
+              <p className="text-2xl font-black text-zinc-800">{correctAnswers}/{totalAttempted}</p>
+              <p className="text-[10px] font-black uppercase text-zinc-400">Aciertos</p>
             </div>
           </div>
           
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             <button 
               onClick={downloadPDFReport}
-              className="brutal-button bg-green-600 w-full flex items-center justify-center gap-2"
+              className="brutal-button bg-green-600 w-full flex items-center justify-center gap-2 py-3 text-base"
             >
-              <Download className="w-5 h-5" /> Descargar Reporte PDF
+              <Download className="w-4 h-4" /> Descargar Reporte PDF
             </button>
             <button 
               onClick={shareByEmail}
-              className="brutal-button bg-blue-500 w-full flex items-center justify-center gap-2"
+              className="brutal-button bg-blue-500 w-full flex items-center justify-center gap-2 py-3 text-base"
             >
-              <Mail className="w-5 h-5" /> Compartir por Correo
+              <Mail className="w-4 h-4" /> Compartir por Correo
             </button>
             <button 
               onClick={restartGame}
-              className="brutal-button-secondary w-full flex items-center justify-center gap-2"
+              className="brutal-button-secondary w-full flex items-center justify-center gap-2 py-3 text-base"
             >
-              <RefreshCcw className="w-5 h-5" /> Jugar de nuevo
+              <RefreshCcw className="w-4 h-4" /> Jugar de nuevo
             </button>
           </div>
         </motion.div>
@@ -438,18 +426,18 @@ export default function App() {
   const currentQuestion = sessionQuestions[currentQuestionIndex];
 
   return (
-    <div className="min-h-screen bg-zinc-50 p-4 md:p-12 font-sans selection:bg-indigo-500 selection:text-white">
-      <div className="max-w-5xl mx-auto mb-8 bg-black text-white p-4 brutal-border flex flex-col md:flex-row justify-between items-center gap-4">
-        <span className="text-sm font-black uppercase tracking-widest text-zinc-400">Estudiante:</span>
-        <h2 className="text-3xl md:text-5xl font-black truncate max-w-full">{studentName}</h2>
+    <div className="min-h-screen bg-zinc-50 p-2 md:p-4 font-sans selection:bg-indigo-500 selection:text-white">
+      <div className="max-w-5xl mx-auto mb-4 bg-black text-white p-2 brutal-border flex flex-row justify-between items-center gap-4">
+        <span className="text-xs font-black uppercase tracking-widest text-zinc-400">Estudiante:</span>
+        <h2 className="text-xl md:text-3xl font-black truncate max-w-[200px] md:max-w-md">{studentName}</h2>
       </div>
-      <header className="max-w-5xl mx-auto flex items-center justify-between gap-4 mb-8">
-        <div className="flex-1 max-w-md">
-          <div className="flex justify-between items-end mb-2">
-             <h2 className="text-lg font-black uppercase tracking-tight text-indigo-700">{currentLevel.title}</h2>
-             <span className="text-sm font-bold text-zinc-400">{currentQuestionIndex + 1} / {sessionQuestions.length}</span>
+      <header className="max-w-5xl mx-auto flex items-center justify-between gap-4 mb-4">
+        <div className="flex-1 max-w-sm">
+          <div className="flex justify-between items-end mb-1">
+             <h2 className="text-sm font-black uppercase tracking-tight text-indigo-700">{currentLevel.title}</h2>
+             <span className="text-xs font-bold text-zinc-400">{currentQuestionIndex + 1} / {sessionQuestions.length}</span>
           </div>
-          <div className="h-4 w-full bg-zinc-200 border-2 border-black overflow-hidden">
+          <div className="h-3 w-full bg-zinc-200 border-2 border-black overflow-hidden">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${((currentQuestionIndex + 1) / sessionQuestions.length) * 100}%` }}
@@ -457,30 +445,30 @@ export default function App() {
             />
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2">
-            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-            <span className="font-black text-xl">{score}</span>
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2">
+            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+            <span className="font-black text-lg">{score}</span>
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-8 items-start">
-        <div className="space-y-6">
+      <main className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-4 items-start">
+        <div className="space-y-4">
           <AnimatePresence mode="wait">
             <motion.div 
               key={currentQuestionIndex}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="bg-white border-4 border-black p-4 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-md mx-auto w-full"
+              className="bg-white border-4 border-black p-3 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-[280px] mx-auto w-full"
             >
-              <div className="aspect-square bg-zinc-100 mb-6 border-2 border-black overflow-hidden relative group">
+              <div className="aspect-square bg-zinc-100 mb-4 border-2 border-black overflow-hidden relative group">
                 {currentQuestionType === "SOUND" ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-indigo-50">
+                  <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-indigo-50">
                     <button 
                       onClick={() => playInstrumentSound(currentQuestion.sound)}
-                      className={`w-40 h-40 rounded-full flex items-center justify-center border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all ${isPlayingSound ? "bg-green-500 translate-x-1 translate-y-1 shadow-none" : "bg-indigo-600 hover:bg-indigo-700"}`}
+                      className={`w-32 h-32 rounded-full flex items-center justify-center border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all ${isPlayingSound ? "bg-green-500 translate-x-1 translate-y-1 shadow-none" : "bg-indigo-600 hover:bg-indigo-700"}`}
                       disabled={isPlayingSound}
                     >
                       {isPlayingSound ? (
@@ -490,15 +478,15 @@ export default function App() {
                               key={i}
                               animate={{ scaleY: [1, 2, 1] }}
                               transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.1 }}
-                              className="w-2 h-8 bg-white rounded-full"
+                              className="w-1.5 h-6 bg-white rounded-full"
                             />
                           ))}
                         </div>
                       ) : (
-                        <Volume2 className="w-20 h-20 text-white" />
+                        <Volume2 className="w-16 h-16 text-white" />
                       )}
                     </button>
-                    <p className="mt-6 font-black uppercase text-indigo-700 tracking-wider">Presiona para escuchar</p>
+                    <p className="mt-4 text-xs font-black uppercase text-indigo-700 tracking-wider">Presiona para escuchar</p>
                   </div>
                 ) : (
                   <img 
@@ -509,11 +497,11 @@ export default function App() {
                   />
                 )}
               </div>
-              <div className="space-y-2">
-                <span className="inline-block bg-black text-white px-3 py-1 text-xs font-black uppercase tracking-widest">
+              <div className="space-y-1">
+                <span className="inline-block bg-black text-white px-2 py-0.5 text-[10px] font-black uppercase tracking-widest">
                   Pregunta {currentQuestionIndex + 1} de {currentLevel.count}
                 </span>
-                <h3 className="text-3xl font-black leading-tight">
+                <h3 className="text-xl font-black leading-tight">
                   {(currentQuestionType === "NAME" || currentQuestionType === "SOUND") 
                     ? "¿Cuál es este instrumento?" 
                     : "¿A qué familia pertenece?"}
@@ -523,29 +511,29 @@ export default function App() {
           </AnimatePresence>
         </div>
 
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-3">
             {options.map((option, idx) => (
               <motion.button
                 key={`${currentQuestionIndex}-${idx}`}
-                whileHover={{ scale: feedback ? 1 : 1.02 }}
-                whileTap={{ scale: feedback ? 1 : 0.98 }}
+                whileHover={{ scale: feedback ? 1 : 1.01 }}
+                whileTap={{ scale: feedback ? 1 : 0.99 }}
                 onClick={() => handleAnswer(option)}
                 disabled={!!feedback}
-                className={`w-full text-left p-6 font-black text-xl border-4 border-black transition-all flex items-center justify-between
+                className={`w-full text-left p-3 font-black text-lg border-4 border-black transition-all flex items-center justify-between
                   ${feedback ? (
                     ((currentQuestionType === "NAME" || currentQuestionType === "SOUND") && option === currentQuestion?.name) ||
                     (currentQuestionType === "BASIC_FAMILY" && option === currentQuestion?.basicFamily) ||
                     (currentQuestionType === "ORGANOLOGICAL" && option === currentQuestion?.organologicalFamily) ||
                     (currentQuestionType === "ORCHESTRAL" && option === currentQuestion?.orchestralFamily)
-                    ? "bg-green-500 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
+                    ? "bg-green-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" 
                     : (feedback && !feedback.isCorrect && (
                         (currentQuestionType === "NAME" || currentQuestionType === "SOUND") ? option === currentQuestion?.name :
                         (currentQuestionType === "BASIC_FAMILY") ? option === currentQuestion?.basicFamily :
                         (currentQuestionType === "ORGANOLOGICAL") ? option === currentQuestion?.organologicalFamily :
                         (currentQuestionType === "ORCHESTRAL") ? option === currentQuestion?.orchestralFamily : false
                       )) ? "bg-white opacity-40 shadow-none" : "bg-red-500 text-white"
-                  ) : "bg-white hover:bg-yellow-300 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"}
+                  ) : "bg-white hover:bg-yellow-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"}
                 `}
               >
                 {option}
@@ -555,7 +543,7 @@ export default function App() {
                   (currentQuestionType === "ORGANOLOGICAL" && option === currentQuestion?.organologicalFamily) ||
                   (currentQuestionType === "ORCHESTRAL" && option === currentQuestion?.orchestralFamily)
                 ) && (
-                  <CheckCircle2 className="w-8 h-8" />
+                  <CheckCircle2 className="w-6 h-6" />
                 )}
               </motion.button>
             ))}
