@@ -473,9 +473,9 @@ export default function App() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="bg-white border-4 border-black p-4 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]"
+              className="bg-white border-4 border-black p-4 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-md mx-auto w-full"
             >
-              <div className="aspect-video bg-zinc-100 mb-6 border-2 border-black overflow-hidden relative group">
+              <div className="aspect-square bg-zinc-100 mb-6 border-2 border-black overflow-hidden relative group">
                 {currentQuestionType === "SOUND" ? (
                   <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-indigo-50">
                     <button 
@@ -505,7 +505,7 @@ export default function App() {
                     src={currentQuestion?.image} 
                     alt="Instrumento" 
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover grayscale-0 group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-contain grayscale-0 group-hover:scale-105 transition-transform duration-500"
                   />
                 )}
               </div>
