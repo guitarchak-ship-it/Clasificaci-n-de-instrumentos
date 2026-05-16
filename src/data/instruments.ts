@@ -262,7 +262,7 @@ export const INSTRUMENTS: Instrument[] = [
     orchestralFamily: OrchestralFamily.STRINGS_BOWED,
     basicFamily: BasicFamily.STRINGS,
     tier: InstrumentTier.ADVANCED,
-    image: "/instruments/cello.jpg",
+    image: "/instruments/violoncello.png",
     sound: "/sounds/violoncello.mp3",
     description: "Instrumento de cuerda frotada, más grande que la viola y se toca sentado.",
   },
