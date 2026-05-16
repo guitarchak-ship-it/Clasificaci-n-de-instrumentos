@@ -99,6 +99,20 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (gameState === "LEVEL_TRANSITION") {
+      const stageSound = new Audio("/sounds/etapa_superada.wav");
+      stageSound.play().catch(err => {
+        console.warn("No se pudo reproducir etapa_superada.wav", err);
+      });
+    } else if (gameState === "SUMMARY") {
+      const fanfarre = new Audio("/sounds/fanfarre.mp3");
+      fanfarre.play().catch(err => {
+        console.warn("No se pudo reproducir fanfarre.mp3", err);
+      });
+    }
+  }, [gameState]);
+
+  useEffect(() => {
     if (gameState === "PLAYING") {
       const levelInstruments = [...INSTRUMENTS]
         .filter(i => i.tier === currentLevel.tier)
@@ -211,12 +225,6 @@ export default function App() {
       if (currentLevelIndex < LEVELS.length - 1) {
         setGameState("LEVEL_TRANSITION");
         
-        // Play stage completed sound
-        const stageSound = new Audio("/sounds/etapa_superada.wav");
-        stageSound.play().catch(err => {
-          console.warn("No se pudo reproducir etapa_superada.wav", err);
-        });
-
         confetti({
           particleCount: 100,
           spread: 70,
@@ -225,12 +233,6 @@ export default function App() {
       } else {
         setGameState("SUMMARY");
         
-        // Play fanfarre sound
-        const fanfarre = new Audio("/sounds/fanfarre.mp3");
-        fanfarre.play().catch(err => {
-          console.warn("No se pudo reproducir fanfarre.mp3", err);
-        });
-
         confetti({
           particleCount: 200,
           spread: 100,
