@@ -824,38 +824,42 @@ export default function App() {
                       ${isSelected ? "bg-yellow-200 border-dashed translate-x-1 translate-y-1 shadow-none" : "hover:bg-indigo-100"}
                     `}
                   >
-                    <div className="aspect-square w-full border-2 border-black overflow-hidden bg-zinc-50 pointer-events-none">
+                    <div className="aspect-square w-full border-2 border-black overflow-hidden bg-zinc-50 pointer-events-none relative">
                       <img 
                         src={instrument.image} 
                         alt={instrument.name} 
                         className="w-full h-full object-contain"
                       />
+                      {isSelected && (
+                        <div className="absolute top-1 right-1 bg-white border border-black p-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                          <Volume2 className="w-3 h-3 text-indigo-600 animate-pulse" />
+                        </div>
+                      )}
                     </div>
                     <span className="font-black text-xs md:text-sm uppercase tracking-tighter text-center line-clamp-2">
                       {instrument.name}
                     </span>
-                    {isSelected && <Volume2 className="w-5 h-5 text-indigo-600 animate-pulse" />}
-                  </motion.button>
 
-                  <AnimatePresence>
-                    {isSelected && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="mt-2 p-3 bg-black text-white border-2 border-black text-xs space-y-2">
-                          <p className="font-bold leading-tight line-clamp-4">{instrument.description}</p>
-                          <div className="space-y-1 border-t border-zinc-700 pt-2 opacity-80">
-                            <p><span className="text-yellow-400 font-black">FAMILIA:</span> {instrument.basicFamily}</p>
-                            <p><span className="text-yellow-400 font-black">TIPO:</span> {instrument.organologicalFamily}</p>
-                            <p><span className="text-yellow-400 font-black">ORQUESTA:</span> {instrument.orchestralFamily}</p>
+                    <AnimatePresence>
+                      {isSelected && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden w-full"
+                        >
+                          <div className="mt-2 p-3 bg-black text-white border-2 border-black text-[10px] md:text-xs space-y-2 text-left">
+                            <p className="font-bold leading-tight">{instrument.description}</p>
+                            <div className="space-y-1 border-t border-zinc-700 pt-2 opacity-80">
+                              <p><span className="text-yellow-400 font-black">FAMILIA:</span> {instrument.basicFamily}</p>
+                              <p><span className="text-yellow-400 font-black">TIPO:</span> {instrument.organologicalFamily}</p>
+                              <p><span className="text-yellow-400 font-black">ORQUESTA:</span> {instrument.orchestralFamily}</p>
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 </div>
               );
             })}
