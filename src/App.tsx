@@ -53,19 +53,25 @@ const LEVELS: LevelConfig[] = [
   { id: 12, title: "12. Maestro Supremo", description: "El examen final de clasificación musical.", count: 10, tier: InstrumentTier.ADVANCED, type: "MIXED" },
 ];
 
+// --- Constants ---
+const STORAGE_KEY = "musical_classification_game_state";
+
 export default function App() {
-  const [gameState, setGameState] = useState<GameState>("START");
-  const [studentName, setStudentName] = useState("");
+  // Load initial state from localStorage
+  const savedState = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+
+  const [gameState, setGameState] = useState<GameState>(savedState.gameState || "START");
+  const [studentName, setStudentName] = useState(savedState.studentName || "");
   const [selectedGalleryId, setSelectedGalleryId] = useState<string | null>(null);
-  const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [correctAnswers, setCorrectAnswers] = useState(0);
-  const [totalAttempted, setTotalAttempted] = useState(0);
+  const [currentLevelIndex, setCurrentLevelIndex] = useState(savedState.currentLevelIndex || 0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(savedState.currentQuestionIndex || 0);
+  const [score, setScore] = useState(savedState.score || 0);
+  const [correctAnswers, setCorrectAnswers] = useState(savedState.correctAnswers || 0);
+  const [totalAttempted, setTotalAttempted] = useState(savedState.totalAttempted || 0);
   const [feedback, setFeedback] = useState<{ isCorrect: boolean; message: string } | null>(null);
-  const [sessionQuestions, setSessionQuestions] = useState<Instrument[]>([]);
-  const [options, setOptions] = useState<string[]>([]);
-  const [currentQuestionType, setCurrentQuestionType] = useState<QuestionType>("NAME");
+  const [sessionQuestions, setSessionQuestions] = useState<Instrument[]>(savedState.sessionQuestions || []);
+  const [options, setOptions] = useState<string[]>(savedState.options || []);
+  const [currentQuestionType, setCurrentQuestionType] = useState<QuestionType>(savedState.currentQuestionType || "NAME");
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -107,6 +113,23 @@ export default function App() {
 
   // --- Effects ---
   useEffect(() => {
+    // Save state to localStorage whenever relevant state changes
+    const stateToSave = {
+      gameState,
+      studentName,
+      currentLevelIndex,
+      currentQuestionIndex,
+      score,
+      correctAnswers,
+      totalAttempted,
+      sessionQuestions,
+      options,
+      currentQuestionType
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+  }, [gameState, studentName, currentLevelIndex, currentQuestionIndex, score, correctAnswers, totalAttempted, sessionQuestions, options, currentQuestionType]);
+
+  useEffect(() => {
     // Cleanup audio on unmount
     return () => stopSound();
   }, []);
@@ -126,7 +149,8 @@ export default function App() {
   }, [gameState]);
 
   useEffect(() => {
-    if (gameState === "PLAYING") {
+    // Only generate new questions if there aren't any for the current level
+    if (gameState === "PLAYING" && (sessionQuestions.length === 0 || currentQuestionIndex === 0 && sessionQuestions.length !== currentLevel.count)) {
       const levelInstruments = [...INSTRUMENTS]
         .filter(i => i.tier === currentLevel.tier)
         .sort(() => Math.random() - 0.5)
@@ -269,7 +293,10 @@ export default function App() {
     setCorrectAnswers(0);
     setTotalAttempted(0);
     setFeedback(null);
+    setSessionQuestions([]);
+    setOptions([]);
     setGameState("START");
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   if (gameState === "START") {
