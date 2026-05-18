@@ -281,6 +281,8 @@ export default function App() {
 
   const startNextLevel = () => {
     stopSound();
+    setSessionQuestions([]);
+    setCurrentQuestionIndex(0);
     setCurrentLevelIndex(i => i + 1);
     setGameState("PLAYING");
   };
