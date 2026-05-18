@@ -137,7 +137,7 @@ export default function App() {
   useEffect(() => {
     if (gameState === "LEVEL_TRANSITION") {
       const stageSound = new Audio("/sounds/etapa_superada.wav");
-      stageSound.volume = 0.4;
+      stageSound.volume = 0.2;
       stageSound.play().catch(err => {
         console.warn("No se pudo reproducir etapa_superada.wav", err);
       });
