@@ -2,5 +2,5 @@
   "name": "LOS INSTRUMENTOS MUSICALES",
   "description": "Aprende a identificar los instrumentos musicales y su clasificación con este Test Interactivo",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
