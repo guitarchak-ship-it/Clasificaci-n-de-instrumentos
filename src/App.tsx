@@ -312,7 +312,7 @@ export default function App() {
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tighter">LOS INSTRUMENTOS MUSICALES</h1>
           <p className="text-lg text-zinc-600 font-medium">
-            Test Interactivo de Clasificación Musical
+            Test Interactivo: Clasificación de Instrumentos Musicales
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
             <button 
