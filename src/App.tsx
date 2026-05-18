@@ -319,7 +319,10 @@ export default function App() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
             <button 
-              onClick={() => setGameState("GALLERY")}
+              onClick={() => {
+                playClickSound();
+                setGameState("GALLERY");
+              }}
               className="p-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-28 hover:bg-indigo-50 transition-colors group relative"
             >
               <img src="/vista_y_oido.png" alt="Vista y Oído" className="w-full h-full object-cover" />
@@ -824,6 +827,7 @@ export default function App() {
             </div>
             <button 
               onClick={() => {
+                playClickSound();
                 stopSound();
                 setGameState("START");
               }}
@@ -842,6 +846,7 @@ export default function App() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
+                      playClickSound();
                       if (isSelected) {
                         stopSound();
                         setSelectedGalleryId(null);
