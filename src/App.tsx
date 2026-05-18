@@ -14,12 +14,14 @@ import {
   XCircle,
   Download,
   Mail,
+  Music2,
+  Library,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { INSTRUMENTS, Instrument, OrganologicalFamily, OrchestralFamily, BasicFamily, InstrumentTier } from "./data/instruments";
 
 // --- Types ---
-type GameState = "START" | "LEVEL_TRANSITION" | "PLAYING" | "SUMMARY";
+type GameState = "START" | "LEVEL_TRANSITION" | "PLAYING" | "SUMMARY" | "GALLERY" | "MAP";
 type QuestionType = "NAME" | "BASIC_FAMILY" | "ORGANOLOGICAL" | "ORCHESTRAL" | "SOUND" | "MIXED";
 
 interface LevelConfig {
@@ -54,6 +56,7 @@ const LEVELS: LevelConfig[] = [
 export default function App() {
   const [gameState, setGameState] = useState<GameState>("START");
   const [studentName, setStudentName] = useState("");
+  const [selectedGalleryId, setSelectedGalleryId] = useState<string | null>(null);
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -66,6 +69,11 @@ export default function App() {
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const [expandedOrchestralCat, setExpandedOrchestralCat] = useState<string | null>(null);
+  const [expandedOrchestralSub, setExpandedOrchestralSub] = useState<string | null>(null);
+  const [expandedOrganoCat, setExpandedOrganoCat] = useState<string | null>(null);
+  const [selectedPreviewInstrument, setSelectedPreviewInstrument] = useState<Instrument | null>(null);
+
   const currentLevel = LEVELS[currentLevelIndex];
 
   // --- Audio Control ---
@@ -76,6 +84,11 @@ export default function App() {
       audioRef.current = null;
       setIsPlayingSound(false);
     }
+  };
+
+  const playClickSound = () => {
+    const click = new Audio("/sounds/clic.wav");
+    click.play().catch(() => {});
   };
 
   const playInstrumentSound = (url?: string) => {
@@ -275,12 +288,27 @@ export default function App() {
             Test Interactivo de Clasificación Musical
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-            <li className="list-none p-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-28">
+            <button 
+              onClick={() => setGameState("GALLERY")}
+              className="p-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-28 hover:bg-indigo-50 transition-colors group relative"
+            >
               <img src="/vista_y_oido.png" alt="Vista y Oído" className="w-full h-full object-cover" />
-            </li>
-            <li className="list-none p-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-28">
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <span className="text-white font-black text-xl tracking-tighter uppercase">Ver Galería</span>
+              </div>
+            </button>
+            <button 
+              onClick={() => {
+                playClickSound();
+                setGameState("MAP");
+              }}
+              className="p-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden h-28 hover:bg-yellow-50 transition-colors group relative"
+            >
               <img src="/ciencia_musical.png" alt="Ciencia Musical" className="w-full h-full object-cover" />
-            </li>
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <span className="text-white font-black text-xl tracking-tighter uppercase">Explorar Ciencia</span>
+              </div>
+            </button>
           </div>
           <div className="space-y-2 text-left">
             <label className="block text-xs font-black uppercase tracking-widest text-zinc-500">Tu Nombre:</label>
@@ -494,6 +522,345 @@ export default function App() {
             </button>
           </div>
         </motion.div>
+      </div>
+    );
+  }
+
+  if (gameState === "MAP") {
+    return (
+      <div className="min-h-screen bg-yellow-50 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <header className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="space-y-1">
+              <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase">Ciencia Musical</h1>
+              <p className="text-xl text-zinc-600 font-medium">Clasificación instrumental interactiva</p>
+            </div>
+            <button 
+              onClick={() => {
+                playClickSound();
+                setGameState("START");
+              }}
+              className="brutal-button bg-white text-black flex items-center gap-2"
+            >
+              <RefreshCcw className="w-5 h-5" /> Volver al Inicio
+            </button>
+          </header>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            {/* FAMILIAS ORQUESTALES */}
+            <div className="brutal-card bg-white p-6 md:p-8 space-y-6">
+              <div className="flex items-center gap-4 bg-indigo-600 text-white p-4 -mx-6 md:-mx-8 -mt-6 md:-mt-8 mb-6 border-b-4 border-black">
+                <Music2 className="w-8 h-8" />
+                <h2 className="text-3xl font-black uppercase tracking-tight">Familias Orquestales</h2>
+              </div>
+              
+              <div className="space-y-4">
+                {[
+                  { 
+                    name: "Cuerdas", 
+                    icon: "🎻", 
+                    color: "bg-red-200", 
+                    desc: "Instrumentos que producen sonido por la vibración de una o más cuerdas.",
+                    subs: [
+                      { name: "Frotadas", orchestral: OrchestralFamily.STRINGS_BOWED, desc: "Se tocan frotando un arco." },
+                      { name: "Pulsadas", orchestral: OrchestralFamily.STRINGS_PLUCKED, desc: "Se tocan pulsando las cuerdas con los dedos o púa." },
+                      { name: "Percutidas", orchestral: OrchestralFamily.STRINGS_STRUCK, desc: "Se tocan golpeando las cuerdas con martillos." }
+                    ]
+                  },
+                  { 
+                    name: "Vientos", 
+                    icon: "🎺", 
+                    color: "bg-blue-200", 
+                    desc: "Instrumentos en los que el sonido es producido por la vibración de aire.",
+                    subs: [
+                      { name: "Madera", orchestral: OrchestralFamily.WOODWINDS, desc: "Originalmente de madera, usan lengüeta o bisel." },
+                      { name: "Metal", orchestral: OrchestralFamily.BRASS, desc: "De metal, el sonido nace de la vibración de los labios." }
+                    ]
+                  },
+                  { 
+                    name: "Percusión", 
+                    icon: "🥁", 
+                    color: "bg-green-200", 
+                    desc: "Instrumentos que se golpean, sacuden o raspan.",
+                    subs: [
+                      { name: "Altura Definida", orchestral: OrchestralFamily.PERCUSSION_PITCHED, desc: "Pueden producir notas musicales afinadas." },
+                      { name: "Altura Indefinida", orchestral: OrchestralFamily.PERCUSSION_UNPITCHED, desc: "Producen sonidos de ritmo sin nota específica." }
+                    ]
+                  }
+                ].map((cat) => (
+                  <div key={cat.name} className="space-y-2">
+                    <button 
+                      onClick={() => {
+                        playClickSound();
+                        setExpandedOrchestralCat(expandedOrchestralCat === cat.name ? null : cat.name);
+                        setExpandedOrchestralSub(null);
+                      }}
+                      className={`w-full text-left p-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${cat.color} hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-between`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{cat.icon}</span>
+                        <h3 className="text-xl font-black uppercase">{cat.name}</h3>
+                      </div>
+                      <span className="font-black text-2xl">{expandedOrchestralCat === cat.name ? "−" : "+"}</span>
+                    </button>
+
+                    <AnimatePresence>
+                      {expandedOrchestralCat === cat.name && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden space-y-2 ml-4"
+                        >
+                          <div className="p-4 bg-white border-2 border-black border-dashed text-sm font-bold">
+                            {cat.desc}
+                          </div>
+                          
+                          {cat.subs.map(sub => (
+                            <div key={sub.name} className="space-y-2">
+                              <button
+                                onClick={() => {
+                                  playClickSound();
+                                  setExpandedOrchestralSub(expandedOrchestralSub === sub.name ? null : sub.name);
+                                }}
+                                className={`w-full text-left p-3 border-2 border-black flex items-center justify-between ${expandedOrchestralSub === sub.name ? "bg-zinc-800 text-white" : "bg-white hover:bg-zinc-100"}`}
+                              >
+                                <span className="font-black uppercase text-sm tracking-tight">{sub.name}</span>
+                                <span className="text-xs">{expandedOrchestralSub === sub.name ? "Cerrar" : "Ver ejemplos"}</span>
+                              </button>
+
+                              <AnimatePresence>
+                                {expandedOrchestralSub === sub.name && (
+                                  <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden space-y-2"
+                                  >
+                                    <p className="text-xs font-medium text-zinc-600 bg-zinc-50 p-2 border-x-2 border-zinc-200">{sub.desc}</p>
+                                    <div className="flex gap-2 p-2 bg-zinc-100 border-2 border-black overflow-x-auto">
+                                      {INSTRUMENTS.filter(i => i.orchestralFamily === sub.orchestral).map(instr => (
+                                        <button 
+                                          key={instr.id} 
+                                          onClick={() => {
+                                            playClickSound();
+                                            setSelectedPreviewInstrument(instr);
+                                          }}
+                                          className="w-16 h-16 bg-white border border-black p-1 flex-shrink-0 hover:scale-110 transition-transform"
+                                        >
+                                          <img src={instr.image} alt={instr.name} title={instr.name} className="w-full h-full object-contain" />
+                                        </button>
+                                      ))}
+                                      {INSTRUMENTS.filter(i => i.orchestralFamily === sub.orchestral).length === 0 && (
+                                        <span className="text-[10px] font-bold text-zinc-500 italic uppercase">Explora la galería para ver ejemplos</span>
+                                      )}
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ORGANOLOGÍA */}
+            <div className="brutal-card bg-white p-6 md:p-8 space-y-6">
+              <div className="flex items-center gap-4 bg-yellow-400 text-black p-4 -mx-6 md:-mx-8 -mt-6 md:-mt-8 mb-6 border-b-4 border-black">
+                <Library className="w-8 h-8" />
+                <h2 className="text-3xl font-black uppercase tracking-tight">Organología</h2>
+              </div>
+              
+              <div className="space-y-4">
+                {[
+                  { name: "Cordófonos", icon: "🎻", desc: "El sonido se produce por la vibración de cuerdas tensas.", organo: OrganologicalFamily.CHORDOPHONE, color: "bg-orange-100" },
+                  { name: "Aerófonos", icon: "🎺", desc: "El sonido se produce por la vibración de una columna de aire.", organo: OrganologicalFamily.AEROPHONE, color: "bg-blue-100" },
+                  { name: "Membranófonos", icon: "🥁", desc: "El sonido se produce por la vibración de una membrana tensa.", organo: OrganologicalFamily.MEMBRANOPHONE, color: "bg-red-100" },
+                  { name: "Idiófonos", icon: "🔔", desc: "El cuerpo del propio instrumento es el que vibra.", organo: OrganologicalFamily.IDIOPHONE, color: "bg-yellow-100" },
+                  { name: "Electrófonos", icon: "🎹", desc: "El sonido se produce o amplifica mediante medios eléctricos.", organo: OrganologicalFamily.ELECTROPHONE, color: "bg-purple-100" }
+                ].map((cat) => (
+                  <div key={cat.name} className="space-y-2">
+                    <button 
+                      onClick={() => {
+                        playClickSound();
+                        setExpandedOrganoCat(expandedOrganoCat === cat.name ? null : cat.name);
+                      }}
+                      className={`w-full text-left p-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${cat.color} hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-between`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{cat.icon}</span>
+                        <h3 className="text-xl font-black uppercase">{cat.name}</h3>
+                      </div>
+                      <span className="font-black text-2xl">{expandedOrganoCat === cat.name ? "−" : "+"}</span>
+                    </button>
+
+                    <AnimatePresence>
+                      {expandedOrganoCat === cat.name && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden space-y-2 ml-4"
+                        >
+                          <div className="p-4 bg-white border-2 border-black border-dashed text-sm font-bold">
+                            {cat.desc}
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-black uppercase text-zinc-400 ml-1">Ejemplos:</p>
+                            <div className="flex gap-2 p-3 bg-zinc-100 border-2 border-black overflow-x-auto">
+                              {INSTRUMENTS.filter(i => i.organologicalFamily === cat.organo).slice(0, 10).map(instr => (
+                                <button 
+                                  key={instr.id} 
+                                  onClick={() => {
+                                    playClickSound();
+                                    setSelectedPreviewInstrument(instr);
+                                  }}
+                                  className="w-14 h-14 bg-white border border-black p-1 flex-shrink-0 grayscale hover:grayscale-0 hover:scale-110 transition-all"
+                                >
+                                  <img src={instr.image} alt={instr.name} title={instr.name} className="w-full h-full object-contain" />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Preview Modal */}
+        <AnimatePresence>
+          {selectedPreviewInstrument && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+              onClick={() => setSelectedPreviewInstrument(null)}
+            >
+              <motion.div 
+                initial={{ scale: 0.8, rotate: -2 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0.8, rotate: 2 }}
+                className="max-w-xl w-full brutal-card bg-white p-8 space-y-6 relative"
+                onClick={e => e.stopPropagation()}
+              >
+                <button 
+                  onClick={() => setSelectedPreviewInstrument(null)}
+                  className="absolute top-4 right-4 bg-red-500 text-white p-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-1 translate-y-1"
+                >
+                  <XCircle className="w-6 h-6" />
+                </button>
+
+                <div className="aspect-square w-full border-4 border-black bg-zinc-50 overflow-hidden flex items-center justify-center">
+                  <img 
+                    src={selectedPreviewInstrument.image} 
+                    alt={selectedPreviewInstrument.name} 
+                    className="w-full h-full object-contain p-8"
+                  />
+                </div>
+
+                <div className="text-center space-y-2">
+                  <h3 className="text-4xl font-black uppercase tracking-tighter">{selectedPreviewInstrument.name}</h3>
+                  <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm">Zoom de Instrumento</p>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  if (gameState === "GALLERY") {
+    return (
+      <div className="min-h-screen bg-indigo-50 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <header className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="space-y-2 text-center md:text-left">
+              <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase">Galería de Instrumentos</h1>
+              <p className="text-xl text-zinc-600 font-medium">
+                Haz clic en un instrumento para escuchar su sonido y conocer su clasificación.
+              </p>
+            </div>
+            <button 
+              onClick={() => {
+                stopSound();
+                setGameState("START");
+              }}
+              className="brutal-button bg-white text-black flex items-center gap-2"
+            >
+              <RefreshCcw className="w-5 h-5" /> Volver al Inicio
+            </button>
+          </header>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            {INSTRUMENTS.map((instrument) => {
+              const isSelected = selectedGalleryId === instrument.id;
+              return (
+                <div key={instrument.id} className="flex flex-col h-full">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      if (isSelected) {
+                        stopSound();
+                        setSelectedGalleryId(null);
+                      } else {
+                        setSelectedGalleryId(instrument.id);
+                        playInstrumentSound(instrument.sound);
+                      }
+                    }}
+                    className={`p-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-2 transition-all h-full
+                      ${isSelected ? "bg-yellow-200 border-dashed translate-x-1 translate-y-1 shadow-none" : "hover:bg-indigo-100"}
+                    `}
+                  >
+                    <div className="aspect-square w-full border-2 border-black overflow-hidden bg-zinc-50 pointer-events-none">
+                      <img 
+                        src={instrument.image} 
+                        alt={instrument.name} 
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <span className="font-black text-xs md:text-sm uppercase tracking-tighter text-center line-clamp-2">
+                      {instrument.name}
+                    </span>
+                    {isSelected && <Volume2 className="w-5 h-5 text-indigo-600 animate-pulse" />}
+                  </motion.button>
+
+                  <AnimatePresence>
+                    {isSelected && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-2 p-3 bg-black text-white border-2 border-black text-xs space-y-2">
+                          <p className="font-bold leading-tight line-clamp-4">{instrument.description}</p>
+                          <div className="space-y-1 border-t border-zinc-700 pt-2 opacity-80">
+                            <p><span className="text-yellow-400 font-black">FAMILIA:</span> {instrument.basicFamily}</p>
+                            <p><span className="text-yellow-400 font-black">TIPO:</span> {instrument.organologicalFamily}</p>
+                            <p><span className="text-yellow-400 font-black">ORQUESTA:</span> {instrument.orchestralFamily}</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
   }
